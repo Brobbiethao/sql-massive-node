@@ -1,30 +1,39 @@
-var port = 3000;
-var express = require('express');
-var bodyParser = require('body-parser');
-var massive = require('massive');
-var cors = require('cors');
-var productCtrl = require('./productsCtrl');
-var connectionString = "postgres://dhogeland@localhost:5432/first_db";
-var app = express();
-var db;
+const port = 3000;
+const express = require('express')
+const bodyParser = require('body-parser')
+const cors = require('cors')
+const massive = require('massive')
+const connectionString = "postgres://brobbiethao@localhost:5432/sandbox"
+const products_controller = require('./products_controller')
 
-massive(connectionString).then(function(dbInstance) {
+const app = module.exports = express()
+app.use( bodyParser.json() )
+app.use( cors() )
+app.use(express.static(__dirname + '/public'))
+massive( connectionString ).then(dbInstance => {
   app.set('db', dbInstance);
   db = dbInstance;
 })
 
-app.use(bodyParser.json());
-app.use(cors());
+/*
+controller functions:
+create
+getAll
+getOne:$1
+update:$2
+delete
+*/
 
-app.post('/api/add', productCtrl.create);
+//example endpoint app.verb( '/api/table' or /api/table/:param, controller.function E.G. products.controller.getAll)
+app.get('/api/products', products_controller.getAll)
+app.get('/api/product/:id', products_controller.getOne)
 
-app.get('/api/getone/:id', productCtrl.getOne);
-app.get('/api/getall', productCtrl.getAll);
+app.post('/api/product', products_controller.create)
 
-app.put('/api/update/:name/:description/:price/:imageurl/:id', productCtrl.update);
+app.put('/api/product/:id', products_controller.update)
 
-app.delete('/api/delete/:id', productCtrl.delete);
+app.delete('/api/product', products_controller.delete)
 
-app.listen(port, function() {
-  console.log('Yes master?');
+app.listen(port, () => {
+  console.log(`I am listening on port ${port}.`)
 })
